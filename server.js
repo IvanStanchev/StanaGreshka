@@ -2,15 +2,24 @@ require("dotenv").config();
 
 const inquirer = require("inquirer");
 const sleep = require("./utils.js").sleep;
-
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const open = require("open");
+const TextDecoder = require("text-encoding").TextDecoder;
 
 const {
     Client,
     TopicCreateTransaction,
+    TopicMessageSubmitTransaction,
+    TopicMessageQuery,
 } = require("@hashgraph/sdk");
 
 const questions = require("./utils.js").initQuestions;
 const log = require("./utils.js").handleLog;
+const UInt8ToString = require("./utils.js").UInt8ToString;
+const secondsToDate = require("./utils.js").secondsToDate;
 
 const hederaClient = Client.forTestnet();
 let logStatus = "Default";
