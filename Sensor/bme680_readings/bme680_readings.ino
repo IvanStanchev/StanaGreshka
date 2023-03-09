@@ -1,15 +1,24 @@
+#include <Servo.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
+#define ServoPin 10
 Adafruit_BME680 bme; 
+Servo ServoTap;
+
 
 void setup() {
+
+  
   Serial.begin(115200);
   if (!bme.begin(0x76)) {
     Serial.println(F("Check wiring!"));
     while (1);
   }
+
+  ServoTap.attach(ServoPin);
+  ServoTap.write(0);
 
   bme.setTemperatureOversampling(BME680_OS_8X);
   bme.setHumidityOversampling(BME680_OS_2X);
@@ -45,4 +54,15 @@ void loop() {
 
   Serial.println(json);
   delay(2000);
+  
+  String serverResponse = Serial.readString();  
+  serverResponse.trim();
+
+  if (serverResponse == "alarm") {
+    ServoTap.write(90);
+  } 
+
+  if(serverResponse == "extinguished"){
+    ServoTap.write(0);
+  }
 }
