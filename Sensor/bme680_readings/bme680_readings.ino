@@ -35,25 +35,25 @@ void loop() {
     return;
   }
  
-  json += "{";
+  json += "{ ";
   json += "temperature: ";
   json += bme.temperature;
   
   
-  json += "pressure:";
+  json += ", pressure: ";
   json += bme.pressure / 100.0;
  
 
-  json += "humidity: ";
+  json += ", humidity: ";
   json += bme.humidity;
 
-  json += "gas: ";
+  json += ", gas: ";
   json += bme.gas_resistance / 1000.0;
 
-  json += "}";
+  json += " }";
 
   Serial.println(json);
-  delay(2000);
+  delay(7000);
   
   String serverResponse = Serial.readString();  
   serverResponse.trim();
