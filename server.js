@@ -78,4 +78,20 @@ async function configureTopic() {
     await sleep(9000);
   }
 
+  function sendSensotData(msg) {
+    try {
+      new TopicMessageSubmitTransaction()
+        .setTopicId(topicId)
+        .setMessage(msg)
+        .execute(hederaClient);
+  
+      log("TopicMessageSubmitTransaction()", msg, logStatus);
+    } catch (error) {
+      log("ERROR: TopicMessageSubmitTransaction()", error, logStatus);
+      process.exit(1);
+    }
+  }
+
+  function 
+
 init();
