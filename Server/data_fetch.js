@@ -37,10 +37,13 @@ parser.on("data", function (data) {
   console.log(jsonStr);
   const jsonObj = JSON.parse(jsonStr);
   console.log(jsonObj);
+  storeData(jsonObj);
+  json = "";
 });
 
 let dataArray = [];
 function storeData(data) {
   dataArray.push(data);
   console.log("DATA");
+  console.log(dataArray);
 }
