@@ -167,4 +167,13 @@ function runApp() {
     });
   }
 
+  async function configureExistingTopic(existingTopicId) {
+    log("init()", "connecting to existing topic", logStatus);
+    if (existingTopicId === "") {
+      topicId = TopicId.fromString(process.env.TOPIC_ID);
+    } else {
+      topicId = TopicId.fromString(existingTopicId);
+    }
+  }  
+
 init();
