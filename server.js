@@ -25,6 +25,7 @@ async function init() {
             } else {
                 await configureTopic();
             }
+            runApp();
         } catch (error) {
             log("ERROR: init() failed", error, logStatus);
             process.exit(1);
@@ -78,7 +79,7 @@ async function configureTopic() {
     await sleep(9000);
 }
 
-function sendSensotData(msg) {
+function sendSensorData(msg) {
     try {
         new TopicMessageSubmitTransaction()
             .setTopicId(topicId)
@@ -125,7 +126,36 @@ function subscribeToMirror() {
     }
 }
 
+function runApp() {
+    app.use(express.static("public"));
+    http.listen(0, function () {
+      const port = 8080;
+      open("http://localhost:" + port);
+    });
+    subscribeToMirror();
+    io.on("connection", function (client) {
+      const connectMessage = {
+        operatorAccount: operatorAccount,
+        client: client.id,
+        topicId: topicId.toString(),
+      };
+      io.emit("connect message", JSON.stringify(connectMessage));
+      client.on("chat message", function (msg) {
+        const message = {
+          operatorAccount: operatorAccount,
+          client: client.id,
+          message: msg,
+        };
+        sendSensorData(JSON.stringify(message));
+      });
+      client.on("disconnect", function () {
+        const disconnect = {
+          operatorAccount: operatorAccount,
+          client: client.id,
+        };
+        io.emit("disconnect message", JSON.stringify(disconnect));
+      });
+    });
+  }
 
-function
-
-    init();
+init();
