@@ -1,6 +1,8 @@
 require("dotenv").config();
 
 const inquirer = require("inquirer");
+const sleep = require("./utils.js").sleep;
+
 
 const {
     Client,
@@ -13,19 +15,22 @@ const log = require("./utils.js").handleLog;
 const hederaClient = Client.forTestnet();
 let logStatus = "Default";
 
-
 async function init() {
     inquirer.prompt(questions).then(async function (answers) {
-        try {
-            logStatus = answers.status;
-            configureAccount(answers.account, answers.key);
-            console.log("Account configured successfully")
-        } catch (error) {
-            log("ERROR: init() failed", error, logStatus);
-            process.exit(1);
+      try {
+        logStatus = answers.status;
+        configureAccount(answers.account, answers.key);
+        if (answers.existingTopicId != undefined) {
+          configureExistingTopic(answers.existingTopicId);
+        } else {
+          await configureTopic();
         }
+      } catch (error) {
+        log("ERROR: init() failed", error, logStatus);
+        process.exit(1);
+      }
     });
-}
+  }
 
 function configureAccount(account, key) {
     try {
@@ -61,5 +66,16 @@ async function createNewTopic() {
         process.exit(1);
     }
 }
+
+async function configureTopic() {
+    log("init()", "creating new topic", logStatus);
+    topicId = await createNewTopic();
+    log(
+      "ConsensusTopicCreateTransaction()",
+      `waiting for new HCS Topic & mirror node (it may take a few seconds)`,
+      logStatus
+    );
+    await sleep(9000);
+  }
 
 init();
