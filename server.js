@@ -4,6 +4,7 @@ const inquirer = require("inquirer");
 
 const {
     Client,
+    TopicCreateTransaction,
 } = require("@hashgraph/sdk");
 
 const questions = require("./utils.js").initQuestions;
@@ -28,19 +29,37 @@ async function init() {
 
 function configureAccount(account, key) {
     try {
-      if (account === "" || key === "") {
-        log("init()", "using default .env config", logStatus);
-        operatorAccount = process.env.ACCOUNT_ID;
-        hederaClient.setOperator(process.env.ACCOUNT_ID, process.env.PRIVATE_KEY);
-      }
-      else {
-        operatorAccount = account;
-        hederaClient.setOperator(account, key);
-      }
+        if (account === "" || key === "") {
+            log("init()", "using default .env config", logStatus);
+            operatorAccount = process.env.ACCOUNT_ID;
+            hederaClient.setOperator(process.env.ACCOUNT_ID, process.env.PRIVATE_KEY);
+        }
+        else {
+            operatorAccount = account;
+            hederaClient.setOperator(account, key);
+        }
     } catch (error) {
-      log("ERROR: configureAccount()", error, logStatus);
-      process.exit(1);
+        log("ERROR: configureAccount()", error, logStatus);
+        process.exit(1);
     }
-  }
+}
 
-  init();
+async function createNewTopic() {
+    try {
+        const response = await new TopicCreateTransaction().execute(hederaClient);
+        log("TopicCreateTransaction()", `submitted tx`, logStatus);
+        const receipt = await response.getReceipt(hederaClient);
+        const newTopicId = receipt.topicId;
+        log(
+            "TopicCreateTransaction()",
+            `success! new topic ${newTopicId}`,
+            logStatus
+        );
+        return newTopicId;
+    } catch (error) {
+        log("ERROR: TopicCreateTransaction()", error, logStatus);
+        process.exit(1);
+    }
+}
+
+init();
