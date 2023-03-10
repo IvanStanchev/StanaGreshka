@@ -122,6 +122,7 @@ function subscribeToMirror() {
                 const messageJson = JSON.parse(mirrorMessage);
                 log("Parsed mirror message", logStatus);
                 const runningHash = UInt8ToString(message["runningHash"]);
+                const timestampNum = message["consensusTimestamp"].toString();
                 const timestamp = secondsToDate(message["consensusTimestamp"]);
 
                 const messageToUI = {
@@ -130,6 +131,7 @@ function subscribeToMirror() {
                     message: messageJson.message,
                     sequence: message.sequenceNumber.toString(10),
                     runningHash: runningHash,
+                    timestampNum: timestampNum,
                     timestamp: timestamp,
                 };
                 io.emit("data message", JSON.stringify(messageToUI));
