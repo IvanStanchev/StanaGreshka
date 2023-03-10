@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const inquirer = require("inquirer");
 const { ReadlineParser } = require("serialport");
-const {sendSMS} = require("./Twilio/call_twilio.js");
+const {sendSMS, call} = require("./Twilio/call_twilio.js");
 var SerialPort = require("serialport").SerialPort;
 const ARDUINO_PATH = "COM12";
 
@@ -141,6 +141,7 @@ function WriteData(json) {
         console.error("Error sending signal:", err);
       } else {
         console.log("Signal sent to start");
+        call();
         sendSMS();
       }
     });
