@@ -1,16 +1,17 @@
 require("dotenv").config();
 
-const inquirer = require("inquirer");
-const sleep = require("./utils.js").sleep;
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
+
 const open = require("open");
 const TextDecoder = require("text-encoding").TextDecoder;
+const inquirer = require("inquirer");
 
 const {
     Client,
+    TopicId,
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
     TopicMessageQuery,
@@ -20,9 +21,15 @@ const questions = require("./utils.js").initQuestions;
 const log = require("./utils.js").handleLog;
 const UInt8ToString = require("./utils.js").UInt8ToString;
 const secondsToDate = require("./utils.js").secondsToDate;
+const sleep = require("./utils.js").sleep;
+
 
 const hederaClient = Client.forTestnet();
 let logStatus = "Default";
+let topicId = "";
+let operatorAccount = "";
+
+
 
 async function init() {
     inquirer.prompt(questions).then(async function (answers) {
@@ -138,42 +145,41 @@ function subscribeToMirror() {
 function runApp() {
     app.use(express.static("public"));
     http.listen(0, function () {
-      const port = 8080;
-      open("http://localhost:" + port);
+        const randomInstancePort = http.address().port;
+        open("http://localhost:" + randomInstancePort);
     });
     subscribeToMirror();
     io.on("connection", function (client) {
-      const connectMessage = {
-        operatorAccount: operatorAccount,
-        client: client.id,
-        topicId: topicId.toString(),
-      };
-      io.emit("connect message", JSON.stringify(connectMessage));
-      client.on("chat message", function (msg) {
-        const message = {
-          operatorAccount: operatorAccount,
-          client: client.id,
-          message: msg,
+        const connectMessage = {
+            operatorAccount: operatorAccount,
+            client: client.id,
+            topicId: topicId.toString(),
         };
-        sendSensorData(JSON.stringify(message));
-      });
-      client.on("disconnect", function () {
-        const disconnect = {
-          operatorAccount: operatorAccount,
-          client: client.id,
-        };
-        io.emit("disconnect message", JSON.stringify(disconnect));
-      });
+        io.emit("connect message", JSON.stringify(connectMessage));
+        client.on("data message", function (msg) {
+            const message = {
+                operatorAccount: operatorAccount,
+                message: msg,
+            };
+            sendSensorData(JSON.stringify(message));
+        });
+        client.on("disconnect", function () {
+            const disconnect = {
+                operatorAccount: operatorAccount,
+                client: client.id,
+            };
+            io.emit("disconnect message", JSON.stringify(disconnect));
+        });
     });
-  }
+}
 
-  async function configureExistingTopic(existingTopicId) {
+async function configureExistingTopic(existingTopicId) {
     log("init()", "connecting to existing topic", logStatus);
     if (existingTopicId === "") {
-      topicId = TopicId.fromString(process.env.TOPIC_ID);
+        topicId = TopicId.fromString(process.env.TOPIC_ID);
     } else {
-      topicId = TopicId.fromString(existingTopicId);
+        topicId = TopicId.fromString(existingTopicId);
     }
-  }  
+}
 
 init();
