@@ -4,9 +4,9 @@
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #define ServoPin 10
+#define BuzzerPin 9
 Adafruit_BME680 bme; 
 Servo ServoTap;
-
 
 void setup() {
 
@@ -39,11 +39,9 @@ void loop() {
   json += "temperature: ";
   json += bme.temperature;
   
-  
   json += ", pressure: ";
   json += bme.pressure / 100.0;
  
-
   json += ", humidity: ";
   json += bme.humidity;
 
@@ -60,9 +58,21 @@ void loop() {
 
   if (serverResponse == "alarm") {
     ServoTap.write(90);
+    Buzzer();
   } 
 
   if(serverResponse == "extinguished"){
     ServoTap.write(0);
+  }
+}
+
+void Buzzer(){
+  int freq = 5000;
+  //int duration = 100;
+  while(1)
+  {
+    tone(BuzzerPin, freq);
+    delay(1000);
+    noTone(BuzzerPin);
   }
 }
