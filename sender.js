@@ -134,8 +134,8 @@ async function configureExistingTopic(existingTopicId) {
 }
 
 function WriteData(json) {
-  let CO2 = json.gas;
-  if (CO2 > 260) {
+  let O2 = json.gas;
+  if (O2 < 90) {
     serialPort.write("alarm", (err) => {
       if (err) {
         console.error("Error sending signal:", err);
