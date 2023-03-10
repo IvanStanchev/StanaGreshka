@@ -8,7 +8,7 @@ body {
   font: 1rem Helvetica, Arial;
 }
 
-.chat {
+.data {
   background: linear-gradient(180deg, #c5c5d4 0%, #b3b3c4 100%);
   flex-direction: column;
   justify-content: start;
@@ -68,7 +68,7 @@ body {
   font-weight: normal;
 }
 
-.chat-details {
+.data-details {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
