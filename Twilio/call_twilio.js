@@ -9,11 +9,18 @@ function sendSMS() {
     client.messages
         .create({
             body: 'Alarm authorities',
-            to: '+359885905045',
-            from: '+1 567 483 1739',
+            to: process.env.TO_NUMBER,
+            from: process.env.FROM_NUMBER,
         })
         .then((message) => console.log(message.sid))
         .catch((error) => console.log(error));
 }
 
-sendSMS();
+function call() {
+    client.calls
+        .create({
+            url: 'http://demo.twilio.com/docs/voice.xml',
+            to: process.env.TO_NUMBER,
+            from: process.env.FROM_NUMBER
+        })
+}
