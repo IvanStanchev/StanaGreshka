@@ -46,9 +46,19 @@ var initQuestions = [
   }
   
   function secondsToDate(time) {
-    var date = new Date(1970, 0, 1);
+    const date = new Date(1970, 0, 1);
     date.setSeconds(time.seconds);
-    return date;
+    const options = {
+      timeZone: "Europe/Sofia",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric"
+    };
+    return date.toLocaleString("en-US", options);
   }
   
   function sleep(ms) {
@@ -61,7 +71,6 @@ var initQuestions = [
     } else if (status === "minimal") {
       console.log(event);
     } else {
-      // debug mode. destructure mirror receipts or print a usual log
       if (log.toString() !== log && log["runningHash"] !== undefined) {
         console.log(event);
         console.log("\t message: " + log.toString());
