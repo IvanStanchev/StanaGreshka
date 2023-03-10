@@ -1,13 +1,10 @@
 require("dotenv").config();
 
-const express = require("express");
-const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
-
-const open = require("open");
 const inquirer = require("inquirer");
 const { ReadlineParser } = require("serialport");
+const {sendSMS} = require("./Server/call_twilio");
+var SerialPort = require("serialport").SerialPort;
+const ARDUINO_PATH = "COM12";
 
 const {
   Client,
@@ -23,7 +20,6 @@ const sleep = require("./utils.js").sleep;
 const hederaClient = Client.forTestnet();
 let logStatus = "Default";
 let topicId = "";
-let operatorAccount = "";
 
 async function init() {
   inquirer.prompt(questions).then(async function (answers) {
@@ -111,8 +107,7 @@ function storeData(data) {
   sendSensorData(JSON.stringify(message));
 }
 
-var SerialPort = require("serialport").SerialPort;
-var serialPort = new SerialPort({ path: "COM8", baudRate: 115200 });
+var serialPort = new SerialPort({ path: ARDUINO_PATH, baudRate: 115200 });
 function runApp() {
   const parser = new ReadlineParser();
 
@@ -146,7 +141,7 @@ function WriteData(json) {
         console.error("Error sending signal:", err);
       } else {
         console.log("Signal sent to start");
-        //sendSMS();
+        sendSMS();
       }
     });
   } else {
@@ -160,22 +155,5 @@ function WriteData(json) {
   }
 }
 
-const twilio = require("twilio");
-
-const accountSid = "AC744144bb0ae77962619a975737dabafe";
-const authToken = "10f2f44a392a87b6fa6c75655c07373f";
-
-const client = require("twilio")(accountSid, authToken);
-
-function sendSMS() {
-  client.messages
-    .create({
-      body: "Alarm authorities - there is fire!",
-      to: "+359885905045",
-      from: "+1 567 483 1739",
-    })
-    .then((message) => console.log(message.sid))
-    .catch((error) => console.log(error));
-}
 
 init();
