@@ -35,6 +35,7 @@ async function init() {
       } else {
         await configureTopic();
       }
+
       runApp();
     } catch (error) {
       log("ERROR: init() failed", error, logStatus);
@@ -102,44 +103,30 @@ function sendSensorData(msg) {
   }
 }
 
-var SerialPort = require("serialport").SerialPort;
-var serialPort = new SerialPort({ path: "COM8", baudRate: 115200 });
-
-const parser = new ReadlineParser();
-
-serialPort.pipe(parser);
-let json = "";
-parser.on("data", function (data) {
-  json += data;
-  const jsonStr = json.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": ');
-  const jsonObj = JSON.parse(jsonStr);
-  console.log(jsonObj);
-  storeData(jsonObj);
-  WriteData(jsonObj);
-  json = "";
-});
-
-let dataArray = [];
-let counter = 0;
 function storeData(data) {
-  dataArray.push(data);
-  counter++;
+  const message = {
+    operatorAccount: process.env.ACCOUNT_ID,
+    message: JSON.stringify(data),
+  };
+  sendSensorData(JSON.stringify(message));
 }
 
+var SerialPort = require("serialport").SerialPort;
+var serialPort = new SerialPort({ path: "COM8", baudRate: 115200 });
 function runApp() {
-  let sentMessages = 0;
-  while (1) {
-    if (sentMessages !== counter) {
-      const message = {
-        operatorAccount: process.env.ACCOUNT_ID,
-        message: JSON.stringify(dataArray[dataArray.length - 1]),
-      };
-      sendSensorData(JSON.stringify(message));
-      sentMessages++;
-      console.log(sentMessages);
-      console.log(counter);
-    }
-  }
+  const parser = new ReadlineParser();
+
+  serialPort.pipe(parser);
+  let json = "";
+  parser.on("data", function (data) {
+    json += data;
+    const jsonStr = json.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": ');
+    const jsonObj = JSON.parse(jsonStr);
+    console.log(jsonObj);
+    storeData(jsonObj);
+    WriteData(jsonObj);
+    json = "";
+  });
 }
 
 async function configureExistingTopic(existingTopicId) {
@@ -153,12 +140,13 @@ async function configureExistingTopic(existingTopicId) {
 
 function WriteData(json) {
   let CO2 = json.gas;
-  if (CO2 > 240) {
+  if (CO2 > 260) {
     serialPort.write("alarm", (err) => {
       if (err) {
         console.error("Error sending signal:", err);
       } else {
         console.log("Signal sent to start");
+        //sendSMS();
       }
     });
   } else {
@@ -170,6 +158,24 @@ function WriteData(json) {
       }
     });
   }
+}
+
+const twilio = require("twilio");
+
+const accountSid = "AC744144bb0ae77962619a975737dabafe";
+const authToken = "10f2f44a392a87b6fa6c75655c07373f";
+
+const client = require("twilio")(accountSid, authToken);
+
+function sendSMS() {
+  client.messages
+    .create({
+      body: "Alarm authorities - there is fire!",
+      to: "+359885905045",
+      from: "+1 567 483 1739",
+    })
+    .then((message) => console.log(message.sid))
+    .catch((error) => console.log(error));
 }
 
 init();
