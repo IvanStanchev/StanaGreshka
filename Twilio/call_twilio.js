@@ -24,3 +24,8 @@ function call() {
             from: process.env.FROM_NUMBER
         })
 }
+
+module.exports = {
+    sendSMS,
+    call
+}
