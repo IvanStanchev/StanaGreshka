@@ -8,7 +8,7 @@ const client = require('twilio')(accountSid, authToken);
 function sendSMS() {
     client.messages
         .create({
-            body: 'Alarm authorities',
+            body: 'ALERT: FIRE DETECTED AT YOUR PREMISES!',
             to: process.env.TO_NUMBER,
             from: process.env.FROM_NUMBER,
         })
