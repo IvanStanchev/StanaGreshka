@@ -1,12 +1,13 @@
 #include <Servo.h>
 #include <Wire.h>
-#include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #define ServoPin 10
 #define BuzzerPin 9
+#define FREQ 5000
 Adafruit_BME680 bme; 
 Servo ServoTap;
+volatile bool FIRE = false;
 
 void setup() {
 
@@ -51,27 +52,30 @@ void loop() {
   json += " }";
 
   Serial.println(json);
-  delay(7000);
-  
+  if(FIRE){
+    Buzzer(7);
+  }
+  else {
+    delay(7000);
+  }
+
   String serverResponse = Serial.readString();  
   serverResponse.trim();
 
   if (serverResponse == "alarm") {
     ServoTap.write(90);
-    Buzzer();
+    FIRE = true;
   } 
 
   if(serverResponse == "extinguished"){
     ServoTap.write(0);
+    FIRE = false;
   }
 }
 
-void Buzzer(){
-  int freq = 5000;
-  //int duration = 100;
-  while(1)
-  {
-    tone(BuzzerPin, freq);
+void Buzzer(int numTimes){
+  for (int i = 0; i < numTimes; i++){
+    tone(BuzzerPin, FREQ);
     delay(1000);
     noTone(BuzzerPin);
   }
