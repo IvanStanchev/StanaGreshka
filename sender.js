@@ -4,7 +4,7 @@ const inquirer = require("inquirer");
 const { ReadlineParser } = require("serialport");
 const {sendSMS, call} = require("./Twilio/call_twilio.js");
 var SerialPort = require("serialport").SerialPort;
-const ARDUINO_PATH = "COM12";
+const ARDUINO_PATH = "COM11";
 
 const {
   Client,
@@ -110,7 +110,7 @@ function storeData(data) {
 var serialPort = new SerialPort({ path: ARDUINO_PATH, baudRate: 115200 });
 function runApp() {
   const parser = new ReadlineParser();
-
+  let lastFireState = false;
   serialPort.pipe(parser);
   let json = "";
   parser.on("data", function (data) {
@@ -119,7 +119,13 @@ function runApp() {
     const jsonObj = JSON.parse(jsonStr);
     console.log(jsonObj);
     storeData(jsonObj);
-    WriteData(jsonObj);
+    WriteData(jsonObj, (fireState) => {
+      if (fireState && lastFireState !== fireState) {
+        call();
+        sendSMS();
+      }
+      lastFireState = fireState;
+    });
     json = "";
   });
 }
@@ -133,16 +139,19 @@ async function configureExistingTopic(existingTopicId) {
   }
 }
 
-function WriteData(json) {
+function WriteData(json, callback) {
   let O2 = json.gas;
-  if (O2 < 90) {
+  let fireState =  false;
+  let temp = json.temperature;
+  console.log(`temp = ${temp}`);
+  if ((O2 > 250) || (temp >25))  {
     serialPort.write("alarm", (err) => {
       if (err) {
         console.error("Error sending signal:", err);
       } else {
+        fireState = true;
         console.log("Signal sent to start");
-        call();
-        sendSMS();
+        callback(fireState);
       }
     });
   } else {
@@ -150,10 +159,13 @@ function WriteData(json) {
       if (err) {
         console.error("Error sending signal:", err);
       } else {
+        fireState = false;
         console.log("Signal sent to end");
+        callback(fireState);
       }
     });
   }
+  return fireState;
 }
 
 
